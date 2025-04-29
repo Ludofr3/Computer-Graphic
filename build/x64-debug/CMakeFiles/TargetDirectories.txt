@@ -1,0 +1,3 @@
+C:/Users/ludod/source/repos/lab/build/x64-debug/CMakeFiles/lab.dir
+C:/Users/ludod/source/repos/lab/build/x64-debug/CMakeFiles/edit_cache.dir
+C:/Users/ludod/source/repos/lab/build/x64-debug/CMakeFiles/rebuild_cache.dir
