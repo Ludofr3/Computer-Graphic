@@ -24,11 +24,12 @@
 #include "Object.h"
 #include <MoverConnection.h>
 #include <Plane.h>
+#include <pcontacts.h>
 
 class MyGlWindow : public Fl_Gl_Window {
 public:
 	MyGlWindow(int x, int y, int w, int h);
-
+	~MyGlWindow();
 
 	Fl_Slider* time;
 	Fl_Light_Button* ui;
@@ -55,8 +56,11 @@ private:
 	float fieldOfView;
 	Viewer *m_viewer;
 	//std::vector<Mover> movers;
-	//std::vector<Plane> planes;
+	std::vector<std::shared_ptr<Plane>> planes;
 	MoverConnection moversConnection;
+	cyclone::ParticleContact contact[3];
+	std::vector<cyclone::ParticleContactGenerator*> contactGenerators;
+	cyclone::ParticleContactResolver* resolver;
 
 	void setProjection(int clearProjection = 1);
 	void getMouseNDC(float& x, float& y);

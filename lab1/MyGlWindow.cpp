@@ -3,7 +3,7 @@
 #include "drawUtils.h"
 #include "timing.h"
 #include <Fireworks.h>
-#include <Fireworks.h>
+#include "Contact.h"
 
 
 static double DEFAULT_VIEW_POINT[3] = { 150, 150, 150 };
@@ -15,6 +15,34 @@ MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 	Fl_Gl_Window(x, y, w, h) {
 
 	moversConnection = MoverConnection();
+	planes.push_back(std::shared_ptr<Plane>(new Plane()));
+	resolver = new cyclone::ParticleContactResolver(10);
+
+	cyclone::MyGroundContact* c = new cyclone::MyGroundContact();
+	for (Mover * m : moversConnection.movers) {
+		c->init(m->particle, m->size);
+	}
+	contactGenerators.push_back(c);
+
+	for (std::shared_ptr<Plane> plane : planes) {
+		MyPlaneContact* p = new MyPlaneContact(plane);
+		for (Mover* m : moversConnection.movers) {
+			p->init(m->particle, m->size);
+		}
+		contactGenerators.push_back(p);
+	}
+
+	for (size_t i = 0; i < moversConnection.movers.size(); i++) {
+		for (size_t j = i + 1; j < moversConnection.movers.size(); j++) {
+			ParticleCollision* particleCollision = new ParticleCollision(
+				moversConnection.movers[i]->particle,
+				moversConnection.movers[j]->particle,
+				moversConnection.movers[i]->size // Assuming all movers have the same size (2.0f)
+			);
+			contactGenerators.push_back(particleCollision);
+		}
+	}
+
 	//FireworksRule rule[3];
 	//std::vector<Fire*> fireworks;
 	//std::vector<Fire* >::iterator iter; //Fire container
@@ -169,8 +197,8 @@ void MyGlWindow::draw() {
 	
 	glEnable(GL_LIGHTING);
 	glEnable(GL_BLEND);
-	for (int i = 0; i < moversConnection.planes.size(); i++) {
-		moversConnection.planes[i]->draw();
+	for (int i = 0; i < planes.size(); i++) {
+		planes[i]->draw();
 	}
 	glDisable(GL_BLEND);
 
@@ -198,6 +226,28 @@ void MyGlWindow::update()
 	if (duration <= 0.0f) return;
 
 	moversConnection.update(duration);
+
+	int maxPossibleContact = 3;
+	unsigned limit = maxPossibleContact;
+	cyclone::ParticleContact* nextContact = contact;
+	for (std::vector<cyclone::ParticleContactGenerator*>::iterator
+		g = contactGenerators.begin(); g != contactGenerators.end(); g++)
+	{
+		unsigned used = (*g)->addContact(nextContact, limit);
+		limit -= used;
+		nextContact += used;
+		if (limit <= 0) break;
+	}
+	int num = maxPossibleContact - limit;
+
+	if (num >= 1) {
+		if (resolver == nullptr) {
+			std::cerr << "Erreur : resolver n'est pas initialisé !" << std::endl;
+			return;
+		}
+		resolver->setIterations(num * 2);
+		resolver->resolveContacts(contact, num, duration);
+	}
 }
 
 
@@ -428,4 +478,12 @@ void MyGlWindow::step()
 	float duration = 0.03; // or 0.06
 	moversConnection.update(duration);
 	std::cout << "step" << std::endl;
+}
+
+MyGlWindow::~MyGlWindow() {
+	delete resolver;
+	for (auto generator : contactGenerators) {
+		delete generator; // Libérez aussi les générateurs de contacts
+	}
+	delete m_viewer; // Si nécessaire
 }

@@ -14,7 +14,7 @@ class Mover {
 public:
 	Mover(cyclone::Vector3 &p) {
 		particle = new cyclone::Particle();
-		particle->setMass(1.0f);
+		particle->setMass(5.0f);
 		particle->setVelocity(0.0f, 0.0f, 0.0f);
 		particle->setAcceleration(0.0f,0.0f, 0.0f);
 		particle->setDamping(0.7f);
@@ -36,22 +36,18 @@ public:
 	float size = 2.0f;
 		
 	void setConnection(Mover * a) {
-		//a->spring = spring;
+	//	a->spring = spring;
 	}
 
-	void update(float duration, std::vector<Plane*> planes) {
-		checkEdges(planes);
+	void update(float duration) {
+		checkEdges();
 		particle->integrate(duration);
 		force->updateForces(duration);
 	}
 
-	void checkWall() {
+	void checkEdges() {
 		cyclone::Vector3 pos = particle->getPosition();
 		cyclone::Vector3 vel = particle->getVelocity();
-		if (pos.y - size <= 0.0f) {
-			pos.y = size;
-			vel.y = -vel.y;
-		}
 		if (pos.x - size >= 100.0f) {
 			pos.x = pos.x - size;
 			vel.x = -vel.x;
@@ -70,26 +66,6 @@ public:
 		}
 		particle->setVelocity(vel);
 		particle->setPosition(pos);
-	}
-
-	void checkPlanesColision(std::vector<Plane*> planes) {
-		cyclone::Vector3 pos = particle->getPosition();
-		cyclone::Vector3 vel = particle->getVelocity();
-		for (int i = 0; i < planes.size(); i++) {
-			if (planes[i]->is_shortest_distance(pos, size)) {
-				pos = planes[i]->new_object_position(pos, size);
-				vel = planes[i]->new_object_velocity(vel);
-				std::cout << "new pos: " << pos.toString() << std::endl;
-				std::cout << "new vel: " << vel.toString() << std::endl;
-			}
-		}
-		particle->setVelocity(vel);
-		particle->setPosition(pos);
-	}
-
-	void checkEdges(std::vector<Plane*> planes) {
-		checkPlanesColision(planes);
-		checkWall();
 	}
 
 	void stop() {}

@@ -54,4 +54,6 @@ public:
 		cyclone::Vector3 v2 = vel - v1;
 		return -1 * v1 + v2;
 	}
+
+	cyclone::Vector3 get_normal() { return n; }
 };
