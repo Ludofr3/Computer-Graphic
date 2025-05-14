@@ -25,6 +25,7 @@
 #include <MoverConnection.h>
 #include <Plane.h>
 #include <pcontacts.h>
+#include <pworld.h>
 
 class MyGlWindow : public Fl_Gl_Window {
 public:
@@ -58,13 +59,21 @@ private:
 	//std::vector<Mover> movers;
 	std::vector<std::shared_ptr<Plane>> planes;
 	MoverConnection moversConnection;
-	cyclone::ParticleContact contact[3];
+	cyclone::ParticleContact contact[5];
 	std::vector<cyclone::ParticleContactGenerator*> contactGenerators;
 	cyclone::ParticleContactResolver* resolver;
+	cyclone::ParticleWorld *world;
+	unsigned particleCount;
+	std::vector<cyclone::ParticleCable*> cables;
+	std::vector<cyclone::ParticleRod* > rods;
+	std::vector<cyclone::ParticleCableConstraint*> supports;
 
 	void setProjection(int clearProjection = 1);
 	void getMouseNDC(float& x, float& y);
 	void setupLight(float x, float y, float z);
 	void putText(char* string, int x, int y, float r, float g, float b);
+	void initCable(cyclone::Particle* pA, cyclone::Particle* pB, float maxLen);
+	void initRod(cyclone::Particle* pA, cyclone::Particle* pB);
+	void initCableConstraint(cyclone::Particle* p, float maxLen);
 };
 

@@ -14,11 +14,12 @@ class Mover {
 public:
 	Mover(cyclone::Vector3 &p) {
 		particle = new cyclone::Particle();
-		particle->setMass(5.0f);
-		particle->setVelocity(0.0f, 0.0f, 0.0f);
-		particle->setAcceleration(0.0f,0.0f, 0.0f);
-		particle->setDamping(0.7f);
 		particle->setPosition(p);
+		particle->setVelocity(0.0f, 0.0f, 0.0f);
+		particle->setDamping(0.9f);
+		particle->setMass(1.0f);
+		particle->setAcceleration(cyclone::Vector3::GRAVITY);
+		particle->clearAccumulator();	
 
 		//spring = new MyAnchoredSpring();
 		drag = new cyclone::ParticleDrag(0.1, 0.01);
@@ -33,16 +34,16 @@ public:
 	//cyclone::ParticleGravity *gravity;
 	cyclone::ParticleDrag *drag;
 	cyclone::ParticleForceRegistry *force;
-	float size = 2.0f;
+	float size = 0.2f;
 		
 	void setConnection(Mover * a) {
 	//	a->spring = spring;
 	}
 
 	void update(float duration) {
-		checkEdges();
-		particle->integrate(duration);
+		//checkEdges();
 		force->updateForces(duration);
+		particle->integrate(duration);
 	}
 
 	void checkEdges() {

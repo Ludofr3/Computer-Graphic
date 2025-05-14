@@ -3,14 +3,9 @@
 
 using namespace cyclone;
 
-MyGroundContact::MyGroundContact()
-{
-}
+MyGroundContact::MyGroundContact(){}
 
-
-MyGroundContact::~MyGroundContact()
-{
-}
+MyGroundContact::~MyGroundContact(){}
 
 void MyGroundContact::init(cyclone::Particle* p,
 	double size)
@@ -98,15 +93,15 @@ unsigned ParticleCollision::addContact(cyclone::ParticleContact* contact, unsign
     cyclone::Vector3 pos1 = particle[1]->getPosition();
     cyclone::Vector3 delta = pos0 - pos1;
     double distance = delta.magnitude();
-    double sumRadii = size * 2;
+    double y = size * 2;
 
-    if (distance < sumRadii) {
+    if (distance < y) {
         contact->particle[0] = particle[0];
         contact->particle[1] = particle[1];
         cyclone::Vector3 normal = delta;
         normal.normalise();
         contact->contactNormal = normal;
-        contact->penetration = sumRadii - distance;
+        contact->penetration = y - distance;
         contact->restitution = 1.0;
 
         return 1;

@@ -6,31 +6,63 @@
 #include "Contact.h"
 
 
-static double DEFAULT_VIEW_POINT[3] = { 150, 150, 150 };
-//static double DEFAULT_VIEW_POINT[3] = { 30, 30, 30 };
+//static double DEFAULT_VIEW_POINT[3] = { 150, 150, 150 };
+static double DEFAULT_VIEW_POINT[3] = { 30, 30, 30 };
 static double DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
 static double DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
 
 MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 	Fl_Gl_Window(x, y, w, h) {
+	particleCount = 12;
+	cyclone::ParticleGravity* gravity = new cyclone::ParticleGravity(cyclone::Vector3::GRAVITY);
 
+	world = new cyclone::ParticleWorld(particleCount * 10);
 	moversConnection = MoverConnection();
-	planes.push_back(std::shared_ptr<Plane>(new Plane()));
-	resolver = new cyclone::ParticleContactResolver(10);
+	// Rangée 1 : indices 0, 2, 4, 6, 8, 10
+	initCable(moversConnection.movers[0]->particle, moversConnection.movers[2]->particle, 3.0f);
+	initCable(moversConnection.movers[2]->particle, moversConnection.movers[4]->particle, 3.5f);
+	initCable(moversConnection.movers[4]->particle, moversConnection.movers[6]->particle, 4.0f);
+	initCable(moversConnection.movers[6]->particle, moversConnection.movers[8]->particle, 3.5f);
+	initCable(moversConnection.movers[8]->particle, moversConnection.movers[10]->particle, 3.0f);
+
+	// Rangée 2 : indices 1, 3, 5, 7, 9, 11
+	initCable(moversConnection.movers[1]->particle, moversConnection.movers[3]->particle, 3.0f);
+	initCable(moversConnection.movers[3]->particle, moversConnection.movers[5]->particle, 3.5f);
+	initCable(moversConnection.movers[5]->particle, moversConnection.movers[7]->particle, 4.0f);
+	initCable(moversConnection.movers[7]->particle, moversConnection.movers[9]->particle, 3.5f);
+	initCable(moversConnection.movers[9]->particle, moversConnection.movers[11]->particle, 3.0f);
+
+	for (auto cable : cables) {
+		world->getContactGenerators().push_back(cable);
+	}
+
+	for (int i = 0; i < moversConnection.movers.size(); i += 2) {
+		initRod(moversConnection.movers[i]->particle, moversConnection.movers[i + 1]->particle);
+		world->getContactGenerators().push_back(rods.back());
+	}
+
+	for (int i = 0; i < moversConnection.movers.size(); i++) {
+		initCableConstraint(moversConnection.movers[i]->particle, 3.0f);
+		world->getContactGenerators().push_back(supports.back());
+	}
+	//planes.push_back(std::shared_ptr<Plane>(new Plane()));
+	//resolver = new cyclone::ParticleContactResolver(10);
 
 	cyclone::MyGroundContact* c = new cyclone::MyGroundContact();
 	for (Mover * m : moversConnection.movers) {
 		c->init(m->particle, m->size);
+		world->getParticles().push_back(m->particle);
 	}
-	contactGenerators.push_back(c);
+	//contactGenerators.push_back(c);
+	world->getContactGenerators().push_back(c);
 
-	for (std::shared_ptr<Plane> plane : planes) {
+	/*for (std::shared_ptr<Plane> plane : planes) {
 		MyPlaneContact* p = new MyPlaneContact(plane);
 		for (Mover* m : moversConnection.movers) {
 			p->init(m->particle, m->size);
 		}
 		contactGenerators.push_back(p);
-	}
+	}*/
 
 	for (size_t i = 0; i < moversConnection.movers.size(); i++) {
 		for (size_t j = i + 1; j < moversConnection.movers.size(); j++) {
@@ -40,8 +72,16 @@ MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 				moversConnection.movers[i]->size // Assuming all movers have the same size (2.0f)
 			);
 			contactGenerators.push_back(particleCollision);
+			world->getContactGenerators().push_back(particleCollision);
 		}
 	}
+
+	for (size_t i = 0; i < moversConnection.movers.size(); i++) {
+		world->getForceRegistry().add(moversConnection.movers[i]->particle, gravity);
+	}
+
+	//world->getForceRegistry().add(moversConnection.movers[1]->particle, moversConnection.springs[0]);
+	//world->getForceRegistry().add(moversConnection.movers[0]->particle, moversConnection.springs[1]);
 
 	//FireworksRule rule[3];
 	//std::vector<Fire*> fireworks;
@@ -133,7 +173,6 @@ void MyGlWindow::drawStuff()
 }
 
 void MyGlWindow::draw() {
-
 	glViewport(0, 0, w(), h());
 	glClearColor(0.2f, 0.2f, .2f, 0);
 
@@ -151,64 +190,70 @@ void MyGlWindow::draw() {
 	drawFloor(200, 20);
 	glPopMatrix();
 
-
 	setupLight(m_viewer->getViewPoint().x, m_viewer->getViewPoint().y, m_viewer->getViewPoint().z);
+    // Ombres
+    setupShadows();
+    glLineWidth(3.0f);
+    moversConnection.draw(1); // Particules en ombre
+    glBegin(GL_LINES);
+    glColor3f(0.2f, 0.2f, 0.2f);
+    for (auto rod : rods) {
+        const cyclone::Vector3& p0 = rod->particle[0]->getPosition();
+        const cyclone::Vector3& p1 = rod->particle[1]->getPosition();
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+    }
+    for (auto cable : cables) {
+        const cyclone::Vector3& p0 = cable->particle[0]->getPosition();
+        const cyclone::Vector3& p1 = cable->particle[1]->getPosition();
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+    }
+    for (auto support : supports) {
+        const cyclone::Vector3& p0 = support->particle->getPosition();
+        const cyclone::Vector3& p1 = support->anchor;
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+    }
+    glEnd();
+    unsetupShadows();
 
+    // Objets
+    glEnable(GL_LIGHTING);
+    glLineWidth(3.0f);
+    moversConnection.draw(0); // Particules
+    glBegin(GL_LINES);
+    glColor3f(0.0f, 0.0f, 1.0f); // Tiges en bleu
+    for (auto rod : rods) {
+        const cyclone::Vector3& p0 = rod->particle[0]->getPosition();
+        const cyclone::Vector3& p1 = rod->particle[1]->getPosition();
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+    }
+    glColor3f(0.0f, 1.0f, 0.0f); // Câbles en vert
+    for (auto cable : cables) {
+        const cyclone::Vector3& p0 = cable->particle[0]->getPosition();
+        const cyclone::Vector3& p1 = cable->particle[1]->getPosition();
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+    }
+    glColor3f(0.7f, 0.7f, 0.7f); // Supports en gris
+    for (auto support : supports) {
+        const cyclone::Vector3& p0 = support->particle->getPosition();
+        const cyclone::Vector3& p1 = support->anchor;
+        glVertex3f(p0.x, p0.y, p0.z);
+        glVertex3f(p1.x, p1.y, p1.z);
+    }
+    glEnd();
+    glLineWidth(1.0f);
+    glDisable(GL_LIGHTING);
 
-	// Add a sphere to the scene.
-	//Draw axises
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glColor3f(1, 0, 0);
-
-	glVertex3f(0, 0.1, 0);
-	glVertex3f(0, 100, 0);
-
-	glColor3f(0, 1, 0);
-
-	glVertex3f(0, 0.1, 0);
-	glVertex3f(100, 0.1, 0);
-
-	glColor3f(0, 0, 1);
-
-	glVertex3f(0, 0.1, 0);
-	glVertex3f(0, 0.1, 100);
-	glEnd();
-	glLineWidth(1.0f);
-
-	glDisable(GL_LIGHTING);
-
-	glEnable(GL_BLEND);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
-	//draw shadow
-	setupShadows();
-	moversConnection.draw(1);
-	unsetupShadows();
-
-	glDisable(GL_BLEND);
-
-	//draw objects
-	glEnable(GL_LIGHTING);
-	glPushMatrix();
-	moversConnection.draw(0);
-	glPopMatrix();
-	glDisable(GL_LIGHTING);
-	
-	glEnable(GL_LIGHTING);
-	glEnable(GL_BLEND);
-	for (int i = 0; i < planes.size(); i++) {
-		planes[i]->draw();
-	}
-	glDisable(GL_BLEND);
-
-	putText("Ludovic de Chavagnac - 7701625", 0, 0, 1, 1, 1);
+    putText("Ludovic de Chavagnac - 7701625", 0, 0, 1, 1, 1);
 
 	glViewport(0, 0, w(), h());
 	setProjection();
 	glEnable(GL_COLOR_MATERIAL);
 }
-
 void MyGlWindow::test()
 {
 
@@ -225,9 +270,11 @@ void MyGlWindow::update()
 	float duration = (float)TimingData::get().lastFrameDuration * 0.003;
 	if (duration <= 0.0f) return;
 
-	moversConnection.update(duration);
+	world->runPhysics(duration);
 
-	int maxPossibleContact = 3;
+	/*moversConnection.update(duration);
+
+	int maxPossibleContact = 5;
 	unsigned limit = maxPossibleContact;
 	cyclone::ParticleContact* nextContact = contact;
 	for (std::vector<cyclone::ParticleContactGenerator*>::iterator
@@ -247,7 +294,7 @@ void MyGlWindow::update()
 		}
 		resolver->setIterations(num * 2);
 		resolver->resolveContacts(contact, num, duration);
-	}
+	}*/
 }
 
 
@@ -480,8 +527,37 @@ void MyGlWindow::step()
 	std::cout << "step" << std::endl;
 }
 
+void MyGlWindow::initCable(cyclone::Particle* pA, cyclone::Particle* pB, float maxLen) {
+	cyclone::ParticleCable* c = new cyclone::ParticleCable();
+	c->particle[0] = pA;
+	c->particle[1] = pB;
+	c->maxLength = maxLen;
+	c->restitution = 0.1f;
+	cables.push_back(c);
+}
+
+void MyGlWindow::initRod(cyclone::Particle* pA, cyclone::Particle* pB) {
+	cyclone::ParticleRod* r = new cyclone::ParticleRod();
+	r->particle[0] = pA;
+	r->particle[1] = pB;
+	r->length = 2.0f;
+
+	rods.push_back(r);
+}
+
+void MyGlWindow::initCableConstraint(cyclone::Particle* p, float maxLen) {
+	cyclone::ParticleCableConstraint* c = new cyclone::ParticleCableConstraint();
+	c->particle = p;
+	cyclone::Vector3 ppos = p->getPosition();
+	c->anchor = cyclone::Vector3(ppos.x, 10, ppos.z);
+	c->maxLength = maxLen;
+	c->restitution = 0.5f;
+	supports.push_back(c);
+}
+
+
 MyGlWindow::~MyGlWindow() {
-	delete resolver;
+	//delete resolver;
 	for (auto generator : contactGenerators) {
 		delete generator; // Libérez aussi les générateurs de contacts
 	}

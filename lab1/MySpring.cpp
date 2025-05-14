@@ -14,7 +14,7 @@ void cyclone::Myspring::updateForce(cyclone::Particle* p, double duration)
 {
 	Vector3 force;
 	Vector3 d = p->getPosition() - other->getPosition();
-	int magnitude = d.magnitude();
+	double magnitude = d.magnitude();
 	d.normalise();
 
 	force = -springConstant * (magnitude - restLength) * d;
@@ -22,7 +22,7 @@ void cyclone::Myspring::updateForce(cyclone::Particle* p, double duration)
 }
 
 MyAnchoredSpring::MyAnchoredSpring() {
-	this->anchor = cyclone::Vector3(3, 30, 0);
+	this->anchor = cyclone::Vector3(0, 0, 0);
 	this->springConstant = 20.0f;
 	this->restLength = 3.0f;
 }

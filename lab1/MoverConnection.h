@@ -11,38 +11,48 @@ class MoverConnection {
 public:
 	MoverConnection() {
 		forces = new cyclone::ParticleForceRegistry();
-		movers = { new Mover(cyclone::Vector3(3, 19, 0)), new Mover(cyclone::Vector3(10, 25, 5)) };
+		movers = {
+			new Mover(cyclone::Vector3(-5, 4, 1)),
+			new Mover(cyclone::Vector3(-5, 4, -1)),
+
+			new Mover(cyclone::Vector3(-3, 4, 1)),
+			new Mover(cyclone::Vector3(-3, 4, -1)),
+
+			new Mover(cyclone::Vector3(-1, 4, 1)),
+			new Mover(cyclone::Vector3(-1, 4, -1)),
+
+			new Mover(cyclone::Vector3(1, 4, 1)),
+			new Mover(cyclone::Vector3(1, 4, -1)),
+
+			new Mover(cyclone::Vector3(3, 4, 1)),
+			new Mover(cyclone::Vector3(3, 4, -1)),
+
+			new Mover(cyclone::Vector3(5, 4, 1)),
+			new Mover(cyclone::Vector3(5, 4, -1)),
+		};
 		gravity = new cyclone::ParticleGravity(cyclone::Vector3(0, -10, 0));
 
 		// Initialisation des springs avec ancres distinctes
-		//movers[0]->spring->init(cyclone::Vector3(5, 15, 5), 5.0f, 3.0f);
-		//movers[1]->spring->init(cyclone::Vector3(15, 15, 10), 5.0f, 3.0f);
-		spring = new cyclone::Myspring(movers[1]->particle, 20.0f, 3.0f);
+		//springs.push_back(new cyclone::Myspring(movers[0]->particle, 20, 3));
+		//springs.push_back(new cyclone::Myspring(movers[1]->particle, 20, 3));
 
 		for (int i = 0; i < movers.size(); i++) {
-			forces->add(movers[i]->particle, gravity);
+			//forces->add(movers[i]->particle, gravity);
 			//forces->add(movers[i]->particle, movers[i]->spring);
 		}
-
-		//movers[0]->spring = new cyclone::Myspring(movers[0]->particle, 20.0f, 3.0f);
-		//movers[1]->spring = new cyclone::Myspring(movers[1]->particle, 20.0f, 3.0f);
-		//movers[0]->setConnection(movers[1]);
-
-		forces->add(movers[0]->particle, spring);
-		forces->add(movers[1]->particle, spring);
 	}
 	~MoverConnection() {}
 
 	cyclone::ParticleGravity* gravity;
 	cyclone::ParticleForceRegistry* forces;
 	std::vector<Mover*> movers;
-	cyclone::Myspring* spring;
+	std::vector<cyclone::Myspring*> springs;
 
 	void update(float duration) {
-		forces->updateForces(duration);
-		for (int i = 0; i < movers.size(); i++) {
+		/*for (int i = 0; i < movers.size(); i++) {
 			movers[i]->update(duration);
-		}
+		}*/
+		forces->updateForces(duration);
 		//checkCollisions();
 	}
 
@@ -54,18 +64,20 @@ public:
 			movers[i]->draw(shadow);
 		}
 
-		glBegin(GL_LINE_STRIP);
-		glColor3f(0, 1, 0);
-		glLineWidth(2.0f);
-		glBegin(GL_LINES);
-		for (unsigned int i = 0; i < movers.size() - 1; i++) {
-			cyclone::Vector3 pos1 = movers[i]->particle->getPosition();
-			cyclone::Vector3 pos2 = movers[i + 1]->particle->getPosition();
-			//glVertex3f(anchor.x, anchor.y, anchor.z); //Starting point
-			glVertex3f(pos1.x, pos1.y, pos1.z);
-			glVertex3f(pos2.x, pos2.y, pos2.z); //Ending point
-		}
-		glEnd();
+		//if (springs.size() > 0) {
+		//	glBegin(GL_LINE_STRIP);
+		//	glColor3f(0, 1, 0);
+		//	glLineWidth(2.0f);
+		//	glBegin(GL_LINES);
+		//	for (unsigned int i = 0; i < movers.size() - 1; i++) {
+		//		cyclone::Vector3 pos1 = movers[i]->particle->getPosition();
+		//		cyclone::Vector3 pos2 = movers[i + 1]->particle->getPosition();
+		//		//glVertex3f(anchor.x, anchor.y, anchor.z); //Starting point
+		//		glVertex3f(pos1.x, pos1.y, pos1.z);
+		//		glVertex3f(pos2.x, pos2.y, pos2.z); //Ending point
+		//	}
+		//	glEnd();
+		//}
 	}
 
 private:
