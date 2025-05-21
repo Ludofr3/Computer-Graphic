@@ -5,7 +5,6 @@
 #include <Fireworks.h>
 #include "Contact.h"
 
-
 //static double DEFAULT_VIEW_POINT[3] = { 150, 150, 150 };
 static double DEFAULT_VIEW_POINT[3] = { 30, 30, 30 };
 static double DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
@@ -13,38 +12,38 @@ static double DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
 
 MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 	Fl_Gl_Window(x, y, w, h) {
-	particleCount = 12;
+	particleCount = 1;
 	cyclone::ParticleGravity* gravity = new cyclone::ParticleGravity(cyclone::Vector3::GRAVITY);
 
 	world = new cyclone::ParticleWorld(particleCount * 10);
 	moversConnection = MoverConnection();
 	// Rangée 1 : indices 0, 2, 4, 6, 8, 10
-	initCable(moversConnection.movers[0]->particle, moversConnection.movers[2]->particle, 3.0f);
-	initCable(moversConnection.movers[2]->particle, moversConnection.movers[4]->particle, 3.5f);
-	initCable(moversConnection.movers[4]->particle, moversConnection.movers[6]->particle, 4.0f);
-	initCable(moversConnection.movers[6]->particle, moversConnection.movers[8]->particle, 3.5f);
-	initCable(moversConnection.movers[8]->particle, moversConnection.movers[10]->particle, 3.0f);
+	//initCable(moversConnection.movers[0]->particle, moversConnection.movers[2]->particle, 3.0f);
+	//initCable(moversConnection.movers[2]->particle, moversConnection.movers[4]->particle, 3.5f);
+	//initCable(moversConnection.movers[4]->particle, moversConnection.movers[6]->particle, 4.0f);
+	//initCable(moversConnection.movers[6]->particle, moversConnection.movers[8]->particle, 3.5f);
+	//initCable(moversConnection.movers[8]->particle, moversConnection.movers[10]->particle, 3.0f);
 
-	// Rangée 2 : indices 1, 3, 5, 7, 9, 11
-	initCable(moversConnection.movers[1]->particle, moversConnection.movers[3]->particle, 3.0f);
-	initCable(moversConnection.movers[3]->particle, moversConnection.movers[5]->particle, 3.5f);
-	initCable(moversConnection.movers[5]->particle, moversConnection.movers[7]->particle, 4.0f);
-	initCable(moversConnection.movers[7]->particle, moversConnection.movers[9]->particle, 3.5f);
-	initCable(moversConnection.movers[9]->particle, moversConnection.movers[11]->particle, 3.0f);
+	//// Rangée 2 : indices 1, 3, 5, 7, 9, 11
+	//initCable(moversConnection.movers[1]->particle, moversConnection.movers[3]->particle, 3.0f);
+	//initCable(moversConnection.movers[3]->particle, moversConnection.movers[5]->particle, 3.5f);
+	//initCable(moversConnection.movers[5]->particle, moversConnection.movers[7]->particle, 4.0f);
+	//initCable(moversConnection.movers[7]->particle, moversConnection.movers[9]->particle, 3.5f);
+	//initCable(moversConnection.movers[9]->particle, moversConnection.movers[11]->particle, 3.0f);
 
-	for (auto cable : cables) {
+	/*for (auto cable : cables) {
 		world->getContactGenerators().push_back(cable);
-	}
+	}*/
 
-	for (int i = 0; i < moversConnection.movers.size(); i += 2) {
+	/*for (int i = 0; i < moversConnection.movers.size(); i += 2) {
 		initRod(moversConnection.movers[i]->particle, moversConnection.movers[i + 1]->particle);
 		world->getContactGenerators().push_back(rods.back());
-	}
+	}*/
 
-	for (int i = 0; i < moversConnection.movers.size(); i++) {
+	/*for (int i = 0; i < moversConnection.movers.size(); i++) {
 		initCableConstraint(moversConnection.movers[i]->particle, 3.0f);
 		world->getContactGenerators().push_back(supports.back());
-	}
+	}*/
 	//planes.push_back(std::shared_ptr<Plane>(new Plane()));
 	//resolver = new cyclone::ParticleContactResolver(10);
 
@@ -69,7 +68,7 @@ MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 			ParticleCollision* particleCollision = new ParticleCollision(
 				moversConnection.movers[i]->particle,
 				moversConnection.movers[j]->particle,
-				moversConnection.movers[i]->size // Assuming all movers have the same size (2.0f)
+				moversConnection.movers[i]->size
 			);
 			contactGenerators.push_back(particleCollision);
 			world->getContactGenerators().push_back(particleCollision);
@@ -172,88 +171,74 @@ void MyGlWindow::drawStuff()
 	polygonf(4, 20., 0., -25., 20., 0., 25., -20., 30., 25., -20., 30., -25.); //a polygon with 4 vertices
 }
 
+// Corrected MyGlWindow::draw to fix floor not displaying when drawing axes
 void MyGlWindow::draw() {
 	glViewport(0, 0, w(), h());
-	glClearColor(0.2f, 0.2f, .2f, 0);
-
+	glClearColor(0.2f, 0.2f, 0.2f, 0);
 	glClearStencil(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glEnable(GL_DEPTH);
+	glEnable(GL_DEPTH_TEST);
 
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
-	// now draw the ground plane
+	// Draw the ground plane
 	setProjection();
 	setupFloor();
-
 	glPushMatrix();
 	drawFloor(200, 20);
 	glPopMatrix();
 
-	setupLight(m_viewer->getViewPoint().x, m_viewer->getViewPoint().y, m_viewer->getViewPoint().z);
-    // Ombres
-    setupShadows();
-    glLineWidth(3.0f);
-    moversConnection.draw(1); // Particules en ombre
-    glBegin(GL_LINES);
-    glColor3f(0.2f, 0.2f, 0.2f);
-    for (auto rod : rods) {
-        const cyclone::Vector3& p0 = rod->particle[0]->getPosition();
-        const cyclone::Vector3& p1 = rod->particle[1]->getPosition();
-        glVertex3f(p0.x, p0.y, p0.z);
-        glVertex3f(p1.x, p1.y, p1.z);
-    }
-    for (auto cable : cables) {
-        const cyclone::Vector3& p0 = cable->particle[0]->getPosition();
-        const cyclone::Vector3& p1 = cable->particle[1]->getPosition();
-        glVertex3f(p0.x, p0.y, p0.z);
-        glVertex3f(p1.x, p1.y, p1.z);
-    }
-    for (auto support : supports) {
-        const cyclone::Vector3& p0 = support->particle->getPosition();
-        const cyclone::Vector3& p1 = support->anchor;
-        glVertex3f(p0.x, p0.y, p0.z);
-        glVertex3f(p1.x, p1.y, p1.z);
-    }
-    glEnd();
-    unsetupShadows();
+	// Setup lighting for objects
+	setupLight(m_viewer->getViewPoint().x,
+		m_viewer->getViewPoint().y,
+		m_viewer->getViewPoint().z);
 
-    // Objets
-    glEnable(GL_LIGHTING);
-    glLineWidth(3.0f);
-    moversConnection.draw(0); // Particules
-    glBegin(GL_LINES);
-    glColor3f(0.0f, 0.0f, 1.0f); // Tiges en bleu
-    for (auto rod : rods) {
-        const cyclone::Vector3& p0 = rod->particle[0]->getPosition();
-        const cyclone::Vector3& p1 = rod->particle[1]->getPosition();
-        glVertex3f(p0.x, p0.y, p0.z);
-        glVertex3f(p1.x, p1.y, p1.z);
-    }
-    glColor3f(0.0f, 1.0f, 0.0f); // Câbles en vert
-    for (auto cable : cables) {
-        const cyclone::Vector3& p0 = cable->particle[0]->getPosition();
-        const cyclone::Vector3& p1 = cable->particle[1]->getPosition();
-        glVertex3f(p0.x, p0.y, p0.z);
-        glVertex3f(p1.x, p1.y, p1.z);
-    }
-    glColor3f(0.7f, 0.7f, 0.7f); // Supports en gris
-    for (auto support : supports) {
-        const cyclone::Vector3& p0 = support->particle->getPosition();
-        const cyclone::Vector3& p1 = support->anchor;
-        glVertex3f(p0.x, p0.y, p0.z);
-        glVertex3f(p1.x, p1.y, p1.z);
-    }
-    glEnd();
-    glLineWidth(1.0f);
-    glDisable(GL_LIGHTING);
+	// ----------------------------------------------------
+	// Draw world axes at origin
+	// Save previous attributes (lighting, blending, line width)
+	glPushAttrib(GL_ENABLE_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	glDisable(GL_LIGHTING);
+	glEnable(GL_BLEND);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glLineWidth(3.0f);
 
-    putText("Ludovic de Chavagnac - 7701625", 0, 0, 1, 1, 1);
+	glBegin(GL_LINES);
+	// Y axis (red)
+	glColor3f(1, 0, 0);
+	glVertex3f(0, 0.1f, 0);
+	glVertex3f(0, 100.0f, 0);
+	// X axis (green)
+	glColor3f(0, 1, 0);
+	glVertex3f(0, 0.1f, 0);
+	glVertex3f(100.0f, 0.1f, 0);
+	// Z axis (blue)
+	glColor3f(0, 0, 1);
+	glVertex3f(0, 0.1f, 0);
+	glVertex3f(0, 0.1f, 100.0f);
+	glEnd();
 
+	glPopAttrib(); // restores lighting, blending, line width, color
+	// ----------------------------------------------------
+
+	// Draw shadows
+	setupShadows();
+	moversConnection.draw(1);
+	unsetupShadows();
+
+	// Draw movers (cubes and local axes)
+	glEnable(GL_LIGHTING);
+	glLineWidth(3.0f);
+	moversConnection.draw(0);
+	glLineWidth(1.0f);
+
+	// Draw HUD text
+	glDisable(GL_LIGHTING);
+	putText("Ludovic de Chavagnac - 7701625", 0, 0, 1, 1, 1);
+
+	// Restore projection for overlay or future draws
 	glViewport(0, 0, w(), h());
 	setProjection();
 	glEnable(GL_COLOR_MATERIAL);
 }
+
 void MyGlWindow::test()
 {
 
@@ -272,7 +257,7 @@ void MyGlWindow::update()
 
 	world->runPhysics(duration);
 
-	/*moversConnection.update(duration);
+	moversConnection.update(duration);
 
 	int maxPossibleContact = 5;
 	unsigned limit = maxPossibleContact;
@@ -294,7 +279,7 @@ void MyGlWindow::update()
 		}
 		resolver->setIterations(num * 2);
 		resolver->resolveContacts(contact, num, duration);
-	}*/
+	}
 }
 
 
@@ -562,4 +547,49 @@ MyGlWindow::~MyGlWindow() {
 		delete generator; // Libérez aussi les générateurs de contacts
 	}
 	delete m_viewer; // Si nécessaire
+}
+
+void MyGlWindow::testValue(float t) {
+	Mover* A = moversConnection.movers[0];
+	Mover* B = moversConnection.movers[1];
+	Mover* C = moversConnection.movers[2];
+
+	// --- LERP pour la position ---
+	cyclone::Vector3 posA = A->particle->getPosition();
+	cyclone::Vector3 posC = C->particle->getPosition();
+	cyclone::Vector3 posB = posA * (1 - t) + posC * t;
+	B->particle->setPosition(posB);
+
+	// --- SLERP pour l’orientation ---
+	cyclone::Quaternion qA = A->orientation;
+	cyclone::Quaternion qC = C->orientation;
+
+	if (qA.r * qC.r + qA.i * qC.i + qA.j * qC.j + qA.k * qC.k < 0.0f) {
+		qC.r = -qC.r;
+		qC.i = -qC.i;
+		qC.j = -qC.j;
+		qC.k = -qC.k;
+	}
+
+	float dot = qA.r * qC.r + qA.i * qC.i + qA.j * qC.j + qA.k * qC.k;
+	float theta = std::acos(dot);
+	if (std::abs(theta) < 0.0001f) {
+		B->orientation = qA;
+	}
+	else {
+		float sin_theta = std::sin(theta);
+		float w1 = std::sin((1 - t) * theta) / sin_theta;
+		float w2 = std::sin(t * theta) / sin_theta;
+
+		cyclone::Quaternion qB;
+		qB.r = w1 * qA.r + w2 * qC.r;
+		qB.i = w1 * qA.i + w2 * qC.i;
+		qB.j = w1 * qA.j + w2 * qC.j;
+		qB.k = w1 * qA.k + w2 * qC.k;
+		qB.normalise();
+
+		B->orientation = qB;
+	}
+
+	B->transformMatrix.setOrientationAndPos(B->orientation, posB);
 }

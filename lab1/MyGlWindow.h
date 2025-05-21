@@ -49,6 +49,7 @@ public:
 	void drawStuff();
 	void doPick();
 	void test();
+	void testValue(float t);
 	void step();
 
 private:
