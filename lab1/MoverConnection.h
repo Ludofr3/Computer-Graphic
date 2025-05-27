@@ -13,9 +13,9 @@ public:
 	MoverConnection() {
 		forces = new cyclone::ParticleForceRegistry();
 		movers = {
-			new Mover(cyclone::Vector3(0, 1.5, 0)),
-			new Mover(cyclone::Vector3(0, 1.5, 0)),
-			new Mover(cyclone::Vector3(0, 10.5, 0)),
+			new Mover(cyclone::Vector3(0, 6, 0)),
+			/*new Mover(cyclone::Vector3(0, 1.5, 0)),
+			new Mover(cyclone::Vector3(0, 10.5, 0)),*/
 
 			/*
 			new Mover(cyclone::Vector3(-3, 4, 1)),
@@ -34,9 +34,9 @@ public:
 			new Mover(cyclone::Vector3(5, 4, -1)),*/
 		};
 
-		moverRotate(0, -45., 0., 0.);
-		moverRotate(1, -45., 0., 0.);
-		moverRotate(2, 45., 45., 0.);
+		moverRotate(0, 0., 0., -90.);
+		/*moverRotate(1, -45., 0., 0.);
+		moverRotate(2, 45., 45., 0.);*/
 
 		gravity = new cyclone::ParticleGravity(cyclone::Vector3(0, -10, 0));
 
@@ -99,10 +99,10 @@ public:
 	}
 
 	void update(float duration) {
-		/*for (int i = 0; i < movers.size(); i++) {
+		for (int i = 0; i < movers.size(); i++) {
 			movers[i]->update(duration);
-		}*/
-		forces->updateForces(duration);
+		}
+		//forces->updateForces(duration);
 		//checkCollisions();
 	}
 

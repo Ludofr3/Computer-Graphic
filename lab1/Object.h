@@ -19,7 +19,7 @@ public:
 		particle->setVelocity(0.0f, 0.0f, 0.0f);
 		particle->setDamping(0.9f);
 		particle->setMass(1.0f);
-		particle->setAcceleration(cyclone::Vector3::GRAVITY);
+		//particle->setAcceleration(cyclone::Vector3::GRAVITY);
 		particle->clearAccumulator();	
 
 		//spring = new MyAnchoredSpring();
@@ -38,6 +38,7 @@ public:
 	cyclone::ParticleForceRegistry *force;
 	float size = 0.2f;
 	cyclone::Matrix4 transformMatrix;
+	cyclone::Vector3 rotation;
 	cyclone::Quaternion orientation;
 		
 	void setConnection(Mover * a) {
@@ -46,8 +47,17 @@ public:
 
 	void update(float duration) {
 		//checkEdges();
-		force->updateForces(duration);
+		//force->updateForces(duration);
 		particle->integrate(duration);
+
+		cyclone::Vector3 angularAcceleration(0, 0, 0); // Pas d'accélération angulaire
+		rotation.addScaledVector(angularAcceleration, duration); // Aucun effet car accélération = 0
+
+		double angularDamping = 1.0; // Pas de ralentissement
+		rotation *= real_pow(angularDamping, duration); // rotation reste constante
+		orientation.addScaledVector(rotation, duration);
+		orientation.normalise();
+		transformMatrix.setOrientationAndPos(orientation, particle->getPosition());
 	}
 
 	void checkEdges() {

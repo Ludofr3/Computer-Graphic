@@ -75,9 +75,9 @@ MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 		}
 	}
 
-	for (size_t i = 0; i < moversConnection.movers.size(); i++) {
+	/*for (size_t i = 0; i < moversConnection.movers.size(); i++) {
 		world->getForceRegistry().add(moversConnection.movers[i]->particle, gravity);
-	}
+	}*/
 
 	//world->getForceRegistry().add(moversConnection.movers[1]->particle, moversConnection.springs[0]);
 	//world->getForceRegistry().add(moversConnection.movers[0]->particle, moversConnection.springs[1]);
@@ -241,7 +241,13 @@ void MyGlWindow::draw() {
 
 void MyGlWindow::test()
 {
-
+	if (!moversConnection.movers.empty()) {
+		Mover* cube = moversConnection.movers[0];
+		cube->rotation = cyclone::Vector3(1, 0, 0);  // Vitesse angulaire autour de l’axe Y
+		//world->getForceRegistry().remove(cube->particle, gravity);  // Retirer la gravité
+		run = 1;  // Activer l’animation
+		ui->value(1);  // Mettre le bouton "Run" à ON pour refléter l’état
+	}
 }
 
 void MyGlWindow::update()

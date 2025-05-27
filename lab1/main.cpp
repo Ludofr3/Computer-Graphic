@@ -61,7 +61,7 @@ void but_cb(Fl_Widget* o, void*data)
 
 void but_cb2(Fl_Widget* o, void*data)
 {
-	Fl_Button* b = (Fl_Button*)o; //Ä³½ºÆÃÀÌ ¹Ýµå½Ã ÇÊ¿ä
+	Fl_Button* b = (Fl_Button*)o;
 	MyGlWindow * win = (MyGlWindow *)data;
 	win->test();
 	win->damage(1);
