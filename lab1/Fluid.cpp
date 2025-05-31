@@ -1,5 +1,5 @@
 #include "Fluid.h"
-#include "Object.h" // Pour la classe Mover
+#include "Mover.h" // Pour la classe Mover
 
 cyclone::Vector3 Fluid::getArchimedesForce(const Mover& mover) const {
     cyclone::Vector3 position = mover.body->getPosition();

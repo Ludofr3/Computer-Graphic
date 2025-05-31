@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "core.h"
-#include "Object.h"
+#include "Mover.h"
 #include <MoverConnection.h>
 #include <Plane.h>
 #include "Fluid.h"

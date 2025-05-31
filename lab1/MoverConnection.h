@@ -5,7 +5,7 @@
 #include <iostream>
 #include <pfgen.h>
 #include <MySpring.h>
-#include "Object.h"
+#include "Mover.h"
 #include <cmath>
 
 class MoverConnection {
