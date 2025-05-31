@@ -11,7 +11,7 @@ static double DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
 static double DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
 
 MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
-	Fl_Gl_Window(x, y, w, h), fluid(1000.0, 0.0, 50.0) {
+	Fl_Gl_Window(x, y, w, h), fluid() {
 	particleCount = 1;
 	cyclone::ParticleGravity* gravity = new cyclone::ParticleGravity(cyclone::Vector3::GRAVITY);
 
@@ -98,24 +98,12 @@ void MyGlWindow::drawStuff()
 
 void MyGlWindow::drawFluidSurface() {
 	glPushMatrix();
-	glTranslatef(0.0f, fluid.level, 0.0f);
-
-	// Activer la transparence
+	glTranslatef(0.0f, fluid.level * 0.5f, 0.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// Couleur bleu eau avec transparence
-	glColor4f(0.0f, 0.3f, 0.8f, 0.5f);
-
-	// Dessiner le plan liquide carré de 50x50
-	glBegin(GL_QUADS);
-	glVertex3f(-fluid.size / 2, 0, -fluid.size / 2);
-	glVertex3f(-fluid.size / 2, 0, fluid.size / 2);
-	glVertex3f(fluid.size / 2, 0, fluid.size / 2);
-	glVertex3f(fluid.size / 2, 0, -fluid.size / 2);
-	glEnd();
-
-	// Désactiver la transparence
+	glColor4f(0.0f, 0.3f, 0.8f, 0.2f);
+	glScalef(fluid.size, fluid.level, fluid.size);
+	glutSolidCube(1.0f);
 	glDisable(GL_BLEND);
 	glPopMatrix();
 }
@@ -134,8 +122,6 @@ void MyGlWindow::draw() {
 	glPushMatrix();
 	drawFloor(200, 20);
 	glPopMatrix();*/
-
-	drawFluidSurface();
 
 	// Désactiver la transparence
 	glDisable(GL_BLEND);
@@ -183,6 +169,8 @@ void MyGlWindow::draw() {
 	glLineWidth(3.0f);
 	moversConnection.draw(0);
 	glLineWidth(1.0f);
+
+	drawFluidSurface();
 
 	// Draw HUD text
 	glDisable(GL_LIGHTING);

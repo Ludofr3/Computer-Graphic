@@ -112,7 +112,7 @@ public:
 		body->setOrientation(orientation);
 		body->setVelocity(velocity);
 
-		float volume = extents.x * extents.y * extents.z * 2.0;
+		float volume = extents.x * extents.y * extents.z * 8.0;
 		float mass = volume * density;
 		body->setMass(mass);
 
@@ -130,8 +130,8 @@ public:
 		inverseInertiaTensor.setInverse(inertiaTensor);
 		body->setInverseInertiaTensor(inverseInertiaTensor);
 
-		body->setLinearDamping(0.99f);
-		body->setAngularDamping(0.85f);
+		body->setLinearDamping(0.6f);
+		body->setAngularDamping(0.7f);
 		body->setAcceleration(cyclone::Vector3(0, -9.81f, 0)); // Gravité
 
 		// Important : s'assurer que le corps est réveillé

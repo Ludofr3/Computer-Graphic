@@ -8,7 +8,7 @@ public:
     double dragCoefficient; // Coefficient de traînée dans le fluide
     double size;
 
-    Fluid(double density = 100.0, double level = 10.0, double drag = 0.9, double size = 50.0)
+    Fluid(double density = 1000.0, double level = 10.0, double drag = 0.5, double size = 50.0)
         : density(density), level(level), dragCoefficient(drag), size(size) {}
 
     // Méthode pour obtenir la force d'Archimède agissant sur un objet

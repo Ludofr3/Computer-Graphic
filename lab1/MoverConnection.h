@@ -11,7 +11,9 @@
 class MoverConnection {
 public:
 	MoverConnection() {
-		movers.push_back(new Mover(cyclone::Vector3(0, 10, 0)));
+		movers.push_back(new Mover(cyclone::Vector3(0, 15, 0)));
+		movers.push_back(new Mover(cyclone::Vector3(5, 15, 4)));
+		movers.push_back(new Mover(cyclone::Vector3(-5, 15, 2)));
 	}
 	~MoverConnection() {}
 
