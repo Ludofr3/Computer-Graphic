@@ -49,7 +49,7 @@ void idleCB(void* w)
 
 void but_cb(Fl_Widget* o, void*data)
 {
-	Fl_Button* b = (Fl_Button*)o; //Ä³½ºÆÃÀÌ ¹Ýµå½Ã ÇÊ¿ä
+	Fl_Button* b = (Fl_Button*)o;
 	MyGlWindow * win = (MyGlWindow *)data;
 	if (b->value())
 		win->run = 1;
@@ -69,7 +69,7 @@ void but_cb2(Fl_Widget* o, void*data)
 
 void but_cb3(Fl_Widget* o, void* data)
 {
-	Fl_Value_Slider* b = (Fl_Value_Slider*)o; //캐스팅이 반드시 필요
+	Fl_Value_Slider* b = (Fl_Value_Slider*)o;
 	MyGlWindow* win = (MyGlWindow*)data;
 	win->testValue(b->value());
 	win->damage(1);

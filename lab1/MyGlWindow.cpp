@@ -11,7 +11,7 @@ static double DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
 static double DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
 
 MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
-	Fl_Gl_Window(x, y, w, h) {
+	Fl_Gl_Window(x, y, w, h), fluid(1000.0, 0.0, 50.0) {
 	particleCount = 1;
 	cyclone::ParticleGravity* gravity = new cyclone::ParticleGravity(cyclone::Vector3::GRAVITY);
 
@@ -95,6 +95,31 @@ void MyGlWindow::drawStuff()
 	polygonf(4, 20., 0., -25., 20., 0., 25., -20., 30., 25., -20., 30., -25.); //a polygon with 4 vertices
 }
 
+
+void MyGlWindow::drawFluidSurface() {
+	glPushMatrix();
+	glTranslatef(0.0f, fluid.level, 0.0f);
+
+	// Activer la transparence
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Couleur bleu eau avec transparence
+	glColor4f(0.0f, 0.3f, 0.8f, 0.5f);
+
+	// Dessiner le plan liquide carré de 50x50
+	glBegin(GL_QUADS);
+	glVertex3f(-fluid.size / 2, 0, -fluid.size / 2);
+	glVertex3f(-fluid.size / 2, 0, fluid.size / 2);
+	glVertex3f(fluid.size / 2, 0, fluid.size / 2);
+	glVertex3f(fluid.size / 2, 0, -fluid.size / 2);
+	glEnd();
+
+	// Désactiver la transparence
+	glDisable(GL_BLEND);
+	glPopMatrix();
+}
+
 // Corrected MyGlWindow::draw to fix floor not displaying when drawing axes
 void MyGlWindow::draw() {
 	glViewport(0, 0, w(), h());
@@ -103,11 +128,17 @@ void MyGlWindow::draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	// Draw the ground plane
+	/* //Draw the ground plane
 	setProjection();
 	setupFloor();
 	glPushMatrix();
 	drawFloor(200, 20);
+	glPopMatrix();*/
+
+	drawFluidSurface();
+
+	// Désactiver la transparence
+	glDisable(GL_BLEND);
 	glPopMatrix();
 
 	// Setup lighting for objects
@@ -167,7 +198,7 @@ void MyGlWindow::test()
 {
 	if (!moversConnection.movers.empty()) {
 		Mover* box = moversConnection.movers[0];
-		box->body->addForceAtBodyPoint(cyclone::Vector3(50, 300, 100), cyclone::Vector3(0.5, 1, 0.5));
+		box->body->addForceAtBodyPoint(cyclone::Vector3(5000, 30000, 1000), cyclone::Vector3(0.5, 1, 0.5));
 		run = 1;
 		ui->value(1);
 	}
@@ -186,18 +217,15 @@ void MyGlWindow::update()
 
 	world->runPhysics(duration);
 
-	// Détection de collision avec le sol (y=0)
+	// Appliquer la poussée d'Archimède et la traînée à chaque Mover
 	for (auto& mover : moversConnection.movers) {
-		cyclone::Vector3 pos = mover->body->getPosition();
-		if (pos.y - mover->halfSize.y < 0) {
-			pos.y = mover->halfSize.y;
-			mover->body->setPosition(pos);
-			// Inverser la vitesse en Y (restitution)
-			cyclone::Vector3 velocity = mover->body->getVelocity();
-			velocity.y *= -0.5f;
-			mover->body->setVelocity(velocity);
-		}
+		cyclone::Vector3 archimedesForce = fluid.getArchimedesForce(*mover);
+		cyclone::Vector3 dragForce = fluid.getDragForce(*mover);
+
+		mover->body->addForce(archimedesForce);
+		mover->body->addForce(dragForce);
 	}
+
 	moversConnection.update(duration);
 }
 

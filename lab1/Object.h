@@ -16,15 +16,16 @@ public:
 	cyclone::Matrix4 transformMatrix;  // Matrice de transformation
 	cyclone::RigidBody* body;
 	cyclone::Vector3 halfSize;
-
 	cyclone::ParticleDrag* drag;
 	cyclone::ParticleForceRegistry* force;
-	float size = 1.;
+	float size = 1.0f;
+	float density;
 
 	Mover(cyclone::Vector3& p) {
 
 		body = new cyclone::RigidBody();
 		halfSize = cyclone::Vector3(1.0f, 1.0f, 1.0f);
+		density = 500.0f;
 		setState(p, cyclone::Quaternion(1, 0, 0, 0), halfSize, cyclone::Vector3(0, 0, 0));
 	}
 
@@ -56,7 +57,13 @@ public:
 			glColor4f(0.2f, 0.2f, 0.2f, 0.5f);
 		}
 		else if (body->getAwake()) {
-			glColor3f(0.7f, 0.7f, 1.0f);
+			// Couleur différente selon la densité (visualisation)
+			if (density < 1000.0f) {
+				glColor3f(0.9f, 0.7f, 0.3f);  // Orange pour objets qui flottent
+			}
+			else {
+				glColor3f(0.7f, 0.7f, 1.0f);  // Bleu pour objets lourds
+			}
 		}
 		else {
 			glColor3f(1.0f, 0.7f, 0.7f);
@@ -66,7 +73,7 @@ public:
 		glMultMatrixf(mat);
 		glScalef(halfSize.x * 2, halfSize.y * 2, halfSize.z * 2);
 		glutSolidCube(1.0f);
-		drawAxes(0.0f, 0.0f, 0.0f, size * 10.0f, 2.0f);
+		//drawAxes(0.0f, 0.0f, 0.0f, size * 10.0f, 2.0f);
 		glPopMatrix();
 	}
 
@@ -104,13 +111,31 @@ public:
 		body->setPosition(position);
 		body->setOrientation(orientation);
 		body->setVelocity(velocity);
-		body->setMass(extents.x * extents.y * extents.z * 2.0f); // Masse basée sur le volume
+
+		float volume = extents.x * extents.y * extents.z * 2.0;
+		float mass = volume * density;
+		body->setMass(mass);
+
+		// S'assurer que la masse inverse est calculée correctement
+		if (mass > 0.0f) {
+			body->setInverseMass(1.0f / mass);
+		}
+
 		cyclone::Matrix3 inertiaTensor;
-		inertiaTensor.setBlockInertiaTensor(extents, body->getMass());
+		inertiaTensor.setBlockInertiaTensor(extents, mass);
 		body->setInertiaTensor(inertiaTensor);
-		body->setLinearDamping(0.9f);
-		body->setAngularDamping(0.8f);
+
+		// Calculer la matrice d'inertie inverse
+		cyclone::Matrix3 inverseInertiaTensor;
+		inverseInertiaTensor.setInverse(inertiaTensor);
+		body->setInverseInertiaTensor(inverseInertiaTensor);
+
+		body->setLinearDamping(0.99f);
+		body->setAngularDamping(0.85f);
 		body->setAcceleration(cyclone::Vector3(0, -9.81f, 0)); // Gravité
+
+		// Important : s'assurer que le corps est réveillé
+		body->setAwake(true);
 		body->calculateDerivedData();
 	}
 	
