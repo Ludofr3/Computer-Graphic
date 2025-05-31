@@ -17,83 +17,7 @@ MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
 
 	world = new cyclone::ParticleWorld(particleCount * 10);
 	moversConnection = MoverConnection();
-	// Rangée 1 : indices 0, 2, 4, 6, 8, 10
-	//initCable(moversConnection.movers[0]->particle, moversConnection.movers[2]->particle, 3.0f);
-	//initCable(moversConnection.movers[2]->particle, moversConnection.movers[4]->particle, 3.5f);
-	//initCable(moversConnection.movers[4]->particle, moversConnection.movers[6]->particle, 4.0f);
-	//initCable(moversConnection.movers[6]->particle, moversConnection.movers[8]->particle, 3.5f);
-	//initCable(moversConnection.movers[8]->particle, moversConnection.movers[10]->particle, 3.0f);
 
-	//// Rangée 2 : indices 1, 3, 5, 7, 9, 11
-	//initCable(moversConnection.movers[1]->particle, moversConnection.movers[3]->particle, 3.0f);
-	//initCable(moversConnection.movers[3]->particle, moversConnection.movers[5]->particle, 3.5f);
-	//initCable(moversConnection.movers[5]->particle, moversConnection.movers[7]->particle, 4.0f);
-	//initCable(moversConnection.movers[7]->particle, moversConnection.movers[9]->particle, 3.5f);
-	//initCable(moversConnection.movers[9]->particle, moversConnection.movers[11]->particle, 3.0f);
-
-	/*for (auto cable : cables) {
-		world->getContactGenerators().push_back(cable);
-	}*/
-
-	/*for (int i = 0; i < moversConnection.movers.size(); i += 2) {
-		initRod(moversConnection.movers[i]->particle, moversConnection.movers[i + 1]->particle);
-		world->getContactGenerators().push_back(rods.back());
-	}*/
-
-	/*for (int i = 0; i < moversConnection.movers.size(); i++) {
-		initCableConstraint(moversConnection.movers[i]->particle, 3.0f);
-		world->getContactGenerators().push_back(supports.back());
-	}*/
-	//planes.push_back(std::shared_ptr<Plane>(new Plane()));
-	//resolver = new cyclone::ParticleContactResolver(10);
-
-	cyclone::MyGroundContact* c = new cyclone::MyGroundContact();
-	for (Mover * m : moversConnection.movers) {
-		c->init(m->particle, m->size);
-		world->getParticles().push_back(m->particle);
-	}
-	//contactGenerators.push_back(c);
-	world->getContactGenerators().push_back(c);
-
-	/*for (std::shared_ptr<Plane> plane : planes) {
-		MyPlaneContact* p = new MyPlaneContact(plane);
-		for (Mover* m : moversConnection.movers) {
-			p->init(m->particle, m->size);
-		}
-		contactGenerators.push_back(p);
-	}*/
-
-	for (size_t i = 0; i < moversConnection.movers.size(); i++) {
-		for (size_t j = i + 1; j < moversConnection.movers.size(); j++) {
-			ParticleCollision* particleCollision = new ParticleCollision(
-				moversConnection.movers[i]->particle,
-				moversConnection.movers[j]->particle,
-				moversConnection.movers[i]->size
-			);
-			contactGenerators.push_back(particleCollision);
-			world->getContactGenerators().push_back(particleCollision);
-		}
-	}
-
-	/*for (size_t i = 0; i < moversConnection.movers.size(); i++) {
-		world->getForceRegistry().add(moversConnection.movers[i]->particle, gravity);
-	}*/
-
-	//world->getForceRegistry().add(moversConnection.movers[1]->particle, moversConnection.springs[0]);
-	//world->getForceRegistry().add(moversConnection.movers[0]->particle, moversConnection.springs[1]);
-
-	//FireworksRule rule[3];
-	//std::vector<Fire*> fireworks;
-	//std::vector<Fire* >::iterator iter; //Fire container
-	//for (iter = fireworks.begin(); iter != fireworks.end();) {
-	//	Fire* m = *iter;
-	//	if (CONDITION) { //if condition is met..
-	//		iter = fireworks.erase(iter); //delete it from fireworks
-		//}
-		//else {
-		//	++iter;
-		//}
-	//}
 	mode(FL_RGB | FL_ALPHA | FL_DOUBLE | FL_STENCIL);
 
 	fieldOfView = 45;
@@ -242,11 +166,10 @@ void MyGlWindow::draw() {
 void MyGlWindow::test()
 {
 	if (!moversConnection.movers.empty()) {
-		Mover* cube = moversConnection.movers[0];
-		cube->rotation = cyclone::Vector3(1, 0, 0);  // Vitesse angulaire autour de l’axe Y
-		//world->getForceRegistry().remove(cube->particle, gravity);  // Retirer la gravité
-		run = 1;  // Activer l’animation
-		ui->value(1);  // Mettre le bouton "Run" à ON pour refléter l’état
+		Mover* box = moversConnection.movers[0];
+		box->body->addForceAtBodyPoint(cyclone::Vector3(50, 300, 100), cyclone::Vector3(0.5, 1, 0.5));
+		run = 1;
+		ui->value(1);
 	}
 }
 
@@ -263,29 +186,19 @@ void MyGlWindow::update()
 
 	world->runPhysics(duration);
 
-	moversConnection.update(duration);
-
-	int maxPossibleContact = 5;
-	unsigned limit = maxPossibleContact;
-	cyclone::ParticleContact* nextContact = contact;
-	for (std::vector<cyclone::ParticleContactGenerator*>::iterator
-		g = contactGenerators.begin(); g != contactGenerators.end(); g++)
-	{
-		unsigned used = (*g)->addContact(nextContact, limit);
-		limit -= used;
-		nextContact += used;
-		if (limit <= 0) break;
-	}
-	int num = maxPossibleContact - limit;
-
-	if (num >= 1) {
-		if (resolver == nullptr) {
-			std::cerr << "Erreur : resolver n'est pas initialisé !" << std::endl;
-			return;
+	// Détection de collision avec le sol (y=0)
+	for (auto& mover : moversConnection.movers) {
+		cyclone::Vector3 pos = mover->body->getPosition();
+		if (pos.y - mover->halfSize.y < 0) {
+			pos.y = mover->halfSize.y;
+			mover->body->setPosition(pos);
+			// Inverser la vitesse en Y (restitution)
+			cyclone::Vector3 velocity = mover->body->getVelocity();
+			velocity.y *= -0.5f;
+			mover->body->setVelocity(velocity);
 		}
-		resolver->setIterations(num * 2);
-		resolver->resolveContacts(contact, num, duration);
 	}
+	moversConnection.update(duration);
 }
 
 
@@ -381,7 +294,7 @@ int MyGlWindow::handle(int e) {
 			doPick();
 			if (selected >= 0) {
 				t1 = clock();
-				p1 = moversConnection.movers[selected]->particle->getPosition();
+				p1 = moversConnection.movers[selected]->body->getPosition();
 				std::cout << "picked" << std::endl;
 			}
 			damage(1);
@@ -397,9 +310,9 @@ int MyGlWindow::handle(int e) {
 		if (selected >= 0) {
 			cyclone::Vector3 vel;
 			t2 = clock();
-			p2 = moversConnection.movers[selected]->particle->getPosition();
+			p2 = moversConnection.movers[selected]->body->getPosition();
 			vel = 100 * (p2 - p1) / (t2 - t1);
-			moversConnection.movers[selected]->particle->setVelocity(vel);
+			moversConnection.movers[selected]->body->setVelocity(vel);
 			run = 1;
 			ui->value(1);
 			selected = -1;
@@ -420,13 +333,13 @@ int MyGlWindow::handle(int e) {
 			double rx, ry, rz;
 				
 			mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z,
-				static_cast<double>(moversConnection.movers[selected]->particle->getPosition().x),
-				static_cast<double>(moversConnection.movers[selected]->particle->getPosition().y),
-				static_cast<double>(moversConnection.movers[selected]->particle->getPosition().z),
+				static_cast<double>(moversConnection.movers[selected]->body->getPosition().x),
+				static_cast<double>(moversConnection.movers[selected]->body->getPosition().y),
+				static_cast<double>(moversConnection.movers[selected]->body->getPosition().z),
 			rx, ry, rz,
 			(Fl::event_state() & FL_CTRL) != 0);
 			std::cout << "selected: " << selected << std::endl;
-			moversConnection.movers[selected]->particle->setPosition(rx, ry, rz);
+			moversConnection.movers[selected]->body->setPosition(rx, ry, rz);
 			damage(1);
 		}
 		else {
@@ -556,19 +469,20 @@ MyGlWindow::~MyGlWindow() {
 }
 
 void MyGlWindow::testValue(float t) {
+	if (moversConnection.movers.size() < 3) { return; }
 	Mover* A = moversConnection.movers[0];
 	Mover* B = moversConnection.movers[1];
 	Mover* C = moversConnection.movers[2];
 
 	// --- LERP pour la position ---
-	cyclone::Vector3 posA = A->particle->getPosition();
-	cyclone::Vector3 posC = C->particle->getPosition();
+	cyclone::Vector3 posA = A->body->getPosition();
+	cyclone::Vector3 posC = C->body->getPosition();
 	cyclone::Vector3 posB = posA * (1 - t) + posC * t;
-	B->particle->setPosition(posB);
+	B->body->setPosition(posB);
 
 	// --- SLERP pour l’orientation ---
-	cyclone::Quaternion qA = A->orientation;
-	cyclone::Quaternion qC = C->orientation;
+	cyclone::Quaternion qA = A->body->getOrientation();
+	cyclone::Quaternion qC = C->body->getOrientation();
 
 	if (qA.r * qC.r + qA.i * qC.i + qA.j * qC.j + qA.k * qC.k < 0.0f) {
 		qC.r = -qC.r;
@@ -580,7 +494,7 @@ void MyGlWindow::testValue(float t) {
 	float dot = qA.r * qC.r + qA.i * qC.i + qA.j * qC.j + qA.k * qC.k;
 	float theta = std::acos(dot);
 	if (std::abs(theta) < 0.0001f) {
-		B->orientation = qA;
+		B->body->setOrientation(qA);
 	}
 	else {
 		float sin_theta = std::sin(theta);
@@ -594,8 +508,8 @@ void MyGlWindow::testValue(float t) {
 		qB.k = w1 * qA.k + w2 * qC.k;
 		qB.normalise();
 
-		B->orientation = qB;
+		B->body->setOrientation(qB);
 	}
 
-	B->transformMatrix.setOrientationAndPos(B->orientation, posB);
+	B->body->getTransform().setOrientationAndPos(B->body->getOrientation(), posB);
 }

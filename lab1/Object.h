@@ -13,93 +13,61 @@
 
 class Mover {
 public:
-	Mover(cyclone::Vector3 &p) {
-		particle = new cyclone::Particle();
-		particle->setPosition(p);
-		particle->setVelocity(0.0f, 0.0f, 0.0f);
-		particle->setDamping(0.9f);
-		particle->setMass(1.0f);
-		//particle->setAcceleration(cyclone::Vector3::GRAVITY);
-		particle->clearAccumulator();	
+	cyclone::Matrix4 transformMatrix;  // Matrice de transformation
+	cyclone::RigidBody* body;
+	cyclone::Vector3 halfSize;
 
-		//spring = new MyAnchoredSpring();
-		drag = new cyclone::ParticleDrag(0.1, 0.01);
-		force = new cyclone::ParticleForceRegistry();
-		force->add(particle, drag);
-		transformMatrix = cyclone::Matrix4();
+	cyclone::ParticleDrag* drag;
+	cyclone::ParticleForceRegistry* force;
+	float size = 1.;
+
+	Mover(cyclone::Vector3& p) {
+
+		body = new cyclone::RigidBody();
+		halfSize = cyclone::Vector3(1.0f, 1.0f, 1.0f);
+		setState(p, cyclone::Quaternion(1, 0, 0, 0), halfSize, cyclone::Vector3(0, 0, 0));
 	}
-	~Mover() {}
 
-	cyclone::Particle *particle;
-	//MyAnchoredSpring *spring;
-	
-	//cyclone::ParticleGravity *gravity;
-	cyclone::ParticleDrag *drag;
-	cyclone::ParticleForceRegistry *force;
-	float size = 0.2f;
-	cyclone::Matrix4 transformMatrix;
-	cyclone::Vector3 rotation;
-	cyclone::Quaternion orientation;
-		
-	void setConnection(Mover * a) {
-	//	a->spring = spring;
+	void addTorque(cyclone::Vector3 force, cyclone::Vector3 point) {
+		cyclone::Vector3 com = body->getPosition();
+		cyclone::Vector3 d = point - com;
+		cyclone::Vector3 torque = d.cross(force);
+		body->addTorque(torque);
 	}
 
 	void update(float duration) {
-		//checkEdges();
-		//force->updateForces(duration);
-		particle->integrate(duration);
-
-		cyclone::Vector3 angularAcceleration(0, 0, 0); // Pas d'accélération angulaire
-		rotation.addScaledVector(angularAcceleration, duration); // Aucun effet car accélération = 0
-
-		double angularDamping = 1.0; // Pas de ralentissement
-		rotation *= real_pow(angularDamping, duration); // rotation reste constante
-		orientation.addScaledVector(rotation, duration);
-		orientation.normalise();
-		transformMatrix.setOrientationAndPos(orientation, particle->getPosition());
+		if (body) {
+			body->integrate(duration);
+			body->calculateDerivedData();
+		}
 	}
 
-	void checkEdges() {
-		cyclone::Vector3 pos = particle->getPosition();
-		cyclone::Vector3 vel = particle->getVelocity();
-		if (pos.x - size >= 100.0f) {
-			pos.x = pos.x - size;
-			vel.x = -vel.x;
-		}
-		if (pos.z - size >= 100.0f) {
-			pos.z = pos.z - size;
-			vel.z = -vel.z;
-		}
-		if (pos.x - size <= -100.0f) {
-			pos.x = pos.x + size;
-			vel.x = -vel.x;
-		}
-		if (pos.z - size <= -100.0f) {
-			pos.z = pos.z + size;
-			vel.z = -vel.z;
-		}
-		particle->setVelocity(vel);
-		particle->setPosition(pos);
+	~Mover() {
+		delete body;
 	}
 
 	void stop() {}
 
 	void draw(int shadow) {
-		GLfloat glMat[16];
-		getGLTransform(glMat);
-		if (shadow == 1) {
-			glColor3f(0.1f, 0.1f, 0.1f);
+		GLfloat mat[16];
+		body->getGLTransform(mat);
+
+		if (shadow) {
+			glColor4f(0.2f, 0.2f, 0.2f, 0.5f);
+		}
+		else if (body->getAwake()) {
+			glColor3f(0.7f, 0.7f, 1.0f);
 		}
 		else {
-			glColor3f(1.0f, 0.0f, 0.0f);
+			glColor3f(1.0f, 0.7f, 0.7f);
 		}
+
 		glPushMatrix();
-		glMultMatrixf(glMat);
-		glutSolidCube(1.0f); //size=1
+		glMultMatrixf(mat);
+		glScalef(halfSize.x * 2, halfSize.y * 2, halfSize.z * 2);
+		glutSolidCube(1.0f);
 		drawAxes(0.0f, 0.0f, 0.0f, size * 10.0f, 2.0f);
 		glPopMatrix();
-
 	}
 
 	static void drawAxes(float originX, float originY, float originZ,
@@ -131,23 +99,25 @@ public:
 		glPopAttrib();
 	}
 
-	void getGLTransform(float matrix[16])
-	{
-		matrix[0] = (float)transformMatrix.data[0];
-		matrix[1] = (float)transformMatrix.data[4];
-		matrix[2] = (float)transformMatrix.data[8];
-		matrix[3] = 0;
-		matrix[4] = (float)transformMatrix.data[1];
-		matrix[5] = (float)transformMatrix.data[5];
-		matrix[6] = (float)transformMatrix.data[9];
-		matrix[7] = 0;
-		matrix[8] = (float)transformMatrix.data[2];
-		matrix[9] = (float)transformMatrix.data[6];
-		matrix[10] = (float)transformMatrix.data[10];
-		matrix[11] = 0;
-		matrix[12] = (float)transformMatrix.data[3];
-		matrix[13] = (float)transformMatrix.data[7];
-		matrix[14] = (float)transformMatrix.data[11];
-		matrix[15] = 1;
+	void setState(const cyclone::Vector3& position, const cyclone::Quaternion& orientation,
+		const cyclone::Vector3& extents, const cyclone::Vector3& velocity) {
+		body->setPosition(position);
+		body->setOrientation(orientation);
+		body->setVelocity(velocity);
+		body->setMass(extents.x * extents.y * extents.z * 2.0f); // Masse basée sur le volume
+		cyclone::Matrix3 inertiaTensor;
+		inertiaTensor.setBlockInertiaTensor(extents, body->getMass());
+		body->setInertiaTensor(inertiaTensor);
+		body->setLinearDamping(0.9f);
+		body->setAngularDamping(0.8f);
+		body->setAcceleration(cyclone::Vector3(0, -9.81f, 0)); // Gravité
+		body->calculateDerivedData();
+	}
+	
+	void reset() {
+		body->clearAccumulators();
+		body->setVelocity(0, 0, 0);
+		body->setRotation(0, 0, 0);
+		body->setAwake(true);
 	}
 };
