@@ -11,12 +11,11 @@ static double DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
 static double DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
 
 MyGlWindow::MyGlWindow(int x, int y, int w, int h) :
-	Fl_Gl_Window(x, y, w, h), fluid() {
+	Fl_Gl_Window(x, y, w, h), fluid(), moversConnection() {
 	particleCount = 1;
 	cyclone::ParticleGravity* gravity = new cyclone::ParticleGravity(cyclone::Vector3::GRAVITY);
 
 	world = new cyclone::ParticleWorld(particleCount * 10);
-	moversConnection = MoverConnection();
 
 	mode(FL_RGB | FL_ALPHA | FL_DOUBLE | FL_STENCIL);
 
@@ -480,6 +479,7 @@ void MyGlWindow::initCableConstraint(cyclone::Particle* p, float maxLen) {
 
 MyGlWindow::~MyGlWindow() {
 	//delete resolver;
+	std::cout << "Destroying MyGlWindow" << std::endl;
 	for (auto generator : contactGenerators) {
 		delete generator; // Libérez aussi les générateurs de contacts
 	}

@@ -7,15 +7,25 @@
 #include <MySpring.h>
 #include "Mover.h"
 #include <cmath>
+#include "CubeMover.h"
 
 class MoverConnection {
 public:
 	MoverConnection() {
-		movers.push_back(new Mover(cyclone::Vector3(0, 15, 0)));
-		movers.push_back(new Mover(cyclone::Vector3(5, 15, 4)));
-		movers.push_back(new Mover(cyclone::Vector3(-5, 15, 2)));
+		movers.push_back(new CubeMover(cyclone::Vector3(0, 15, 0)));
+		movers.push_back(new CubeMover(cyclone::Vector3(5, 15, 4)));
+		movers.push_back(new CubeMover(cyclone::Vector3(-5, 15, 2)));
 	}
-	~MoverConnection() {}
+
+	MoverConnection(const MoverConnection&) = delete;
+	MoverConnection& operator=(const MoverConnection&) = delete;
+
+	~MoverConnection() {
+		std::cout << "Destroying MoverConnection" << std::endl;
+		for (Mover* mover : movers) {
+			delete mover;
+		}
+	}
 
 	cyclone::ParticleGravity* gravity;
 	cyclone::ParticleForceRegistry* forces;
@@ -75,7 +85,13 @@ public:
 		for (unsigned int i = 0; i < movers.size(); i++) {
 			if (!shadow)
 				glLoadName(i + 1);
-			movers[i]->draw(shadow);
+
+			if (movers[i]) {
+				movers[i]->draw(shadow);
+			}
+			else {
+				std::cerr << "Warning: mover[" << i << "] is null!" << std::endl;
+			}
 		}
 	}
 };
