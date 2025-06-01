@@ -21,7 +21,7 @@ public:
     float size = 1.0f;
     float density;
 
-    Mover() : body(nullptr), drag(nullptr), force(nullptr), size(1.0f), density(500.0f) {}
+    Mover() : body(nullptr), drag(nullptr), force(nullptr), size(1.0f), density(0.0f) {}
 
     virtual ~Mover() = 0; // Classe abstraite
 

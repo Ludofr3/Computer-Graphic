@@ -8,15 +8,29 @@
 #include "Mover.h"
 #include <cmath>
 #include "CubeMover.h"
-#include "SphereMover.h"
+#include "ElipsoidMover.h"
 
 class MoverConnection {
 public:
 	MoverConnection() {
-		movers.push_back(new CubeMover(cyclone::Vector3(0, 15, 0), cyclone::Vector3(1.0f, 1.0f, 1.0f)));
-		movers.push_back(new CubeMover(cyclone::Vector3(5, 15, 4), cyclone::Vector3(1.0f, 1.0f, 4.0f)));
-		movers.push_back(new CubeMover(cyclone::Vector3(-5, 15, 2), cyclone::Vector3(3.0f, 1.0f, 2.0f)));
-		movers.push_back(new SphereMover(cyclone::Vector3(15, 15, 15), 1.5f));
+		// Exemple : trois cubes ayant chacun une densité différente
+		movers.push_back(new CubeMover(cyclone::Vector3(0, 15, 0),
+			cyclone::Vector3(1, 1, 2),
+			300.0f));  // densité = 300 kg/m³
+		movers.push_back(new CubeMover(cyclone::Vector3(5, 15, 4),
+			cyclone::Vector3(0.5f, 0.5f, 0.5f),
+			800.0f)); // densité = 800 kg/m³
+		movers.push_back(new CubeMover(cyclone::Vector3(-5, 15, 2),
+			cyclone::Vector3(2, 2, 1),
+			1200.0f)); // densité = 1200 kg/m³
+
+		// Exemple : deux ellipsoïdes (ovales) à densité propre
+		movers.push_back(new EllipsoidMover(cyclone::Vector3(10, 10, 0),
+			1.0f, 2.0f, 3.0f,
+			500.0f)); // densité = 500
+		movers.push_back(new EllipsoidMover(cyclone::Vector3(-8, 12, 4),
+			2.5f, 1.5f, 1.0f,
+			900.0f)); // densité = 900
 	}
 
 	MoverConnection(const MoverConnection&) = delete;
