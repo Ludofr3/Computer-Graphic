@@ -207,10 +207,12 @@ void MyGlWindow::update()
 
 	// Appliquer la poussée d'Archimède et la traînée à chaque Mover
 	for (auto& mover : moversConnection.movers) {
-		cyclone::Vector3 archimedesForce = fluid.getArchimedesForce(*mover);
+		//cyclone::Vector3 archimedesForce = fluid.getArchimedesForce(*mover);
+		BuoyancyResult b = fluid.getBuoyancy(*mover);
+		mover->body->addForceAtPoint(b.force, b.applicationPoint);
 		cyclone::Vector3 dragForce = fluid.getDragForce(*mover);
 
-		mover->body->addForce(archimedesForce);
+		//mover->body->addForce(archimedesForce);
 		mover->body->addForce(dragForce);
 	}
 

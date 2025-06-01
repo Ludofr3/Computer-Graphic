@@ -1,6 +1,11 @@
 #pragma once
 #include <cyclone.h>
 
+struct BuoyancyResult {
+    cyclone::Vector3 force;      // vecteur de poussée
+    cyclone::Vector3 applicationPoint; // centre de poussée en world
+};
+
 class Fluid {
 public:
     double density; // Densité du fluide en kg/m³
@@ -16,4 +21,6 @@ public:
 
     // Méthode pour obtenir la force de traînée dans le fluide
     cyclone::Vector3 getDragForce(const class Mover& mover) const;
+
+    BuoyancyResult getBuoyancy(const Mover& m) const;
 };

@@ -24,7 +24,7 @@ public:
 	Mover(cyclone::Vector3& p) {
 
 		body = new cyclone::RigidBody();
-		halfSize = cyclone::Vector3(1.0f, 1.0f, 1.0f);
+		halfSize = cyclone::Vector3(1.0f, 1.0f, 2.0f);
 		density = 500.0f;
 		setState(p, cyclone::Quaternion(1, 0, 0, 0), halfSize, cyclone::Vector3(0, 0, 0));
 	}
@@ -130,8 +130,8 @@ public:
 		inverseInertiaTensor.setInverse(inertiaTensor);
 		body->setInverseInertiaTensor(inverseInertiaTensor);
 
-		body->setLinearDamping(0.6f);
-		body->setAngularDamping(0.7f);
+		body->setLinearDamping(0.2f);
+		body->setAngularDamping(0.5f);
 		body->setAcceleration(cyclone::Vector3(0, -9.81f, 0)); // Gravité
 
 		// Important : s'assurer que le corps est réveillé
