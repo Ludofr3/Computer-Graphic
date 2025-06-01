@@ -8,13 +8,15 @@
 #include "Mover.h"
 #include <cmath>
 #include "CubeMover.h"
+#include "SphereMover.h"
 
 class MoverConnection {
 public:
 	MoverConnection() {
-		movers.push_back(new CubeMover(cyclone::Vector3(0, 15, 0)));
-		movers.push_back(new CubeMover(cyclone::Vector3(5, 15, 4)));
-		movers.push_back(new CubeMover(cyclone::Vector3(-5, 15, 2)));
+		movers.push_back(new CubeMover(cyclone::Vector3(0, 15, 0), cyclone::Vector3(1.0f, 1.0f, 1.0f)));
+		movers.push_back(new CubeMover(cyclone::Vector3(5, 15, 4), cyclone::Vector3(1.0f, 1.0f, 4.0f)));
+		movers.push_back(new CubeMover(cyclone::Vector3(-5, 15, 2), cyclone::Vector3(3.0f, 1.0f, 2.0f)));
+		movers.push_back(new SphereMover(cyclone::Vector3(15, 15, 15), 1.5f));
 	}
 
 	MoverConnection(const MoverConnection&) = delete;

@@ -4,10 +4,10 @@
 
 class CubeMover : public Mover {
 public:
-    CubeMover(const cyclone::Vector3& position) {
+    CubeMover(const cyclone::Vector3& position, cyclone::Vector3& halfSize) {
         std::cout << "CubeMover created at " << position.x << ", " << position.y << ", " << position.z << std::endl;
         body = new cyclone::RigidBody();
-        halfSize = cyclone::Vector3(1.0f, 1.0f, 2.0f);
+        halfSize = halfSize;
         setState(position, cyclone::Quaternion(1, 0, 0, 0), halfSize, cyclone::Vector3(0, 0, 0));
     }
 

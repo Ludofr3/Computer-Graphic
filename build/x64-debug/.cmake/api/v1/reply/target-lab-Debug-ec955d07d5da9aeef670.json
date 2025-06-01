@@ -162,10 +162,10 @@
 				46,
 				49,
 				51,
-				54,
 				56,
-				57,
-				59
+				58,
+				59,
+				61
 			]
 		}
 	],
@@ -307,9 +307,11 @@
 				50,
 				52,
 				53,
+				54,
 				55,
-				58,
-				60
+				57,
+				60,
+				62
 			]
 		},
 		{
@@ -338,10 +340,10 @@
 				46,
 				49,
 				51,
-				54,
 				56,
-				57,
-				59
+				58,
+				59,
+				61
 			]
 		},
 		{
@@ -645,6 +647,16 @@
 		{
 			"backtrace" : 2,
 			"path" : "lab1/Plane.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "lab1/Sphere.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "lab1/SphereMover.h",
 			"sourceGroupIndex" : 0
 		},
 		{
