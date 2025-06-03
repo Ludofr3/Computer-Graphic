@@ -1,7 +1,7 @@
 ﻿#include "Fluid.h"
 #include "Mover.h"
 
-static const int BUOY_SAMPLES_PER_AXIS = 6;
+static const int BUOY_SAMPLES_PER_AXIS = 8;
 
 BuoyancyResult Fluid::getBuoyancy(const Mover& m) const {
     BuoyancyResult result;

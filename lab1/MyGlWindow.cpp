@@ -2,11 +2,9 @@
 #include <iostream>
 #include "drawUtils.h"
 #include "timing.h"
-#include <Fireworks.h>
 #include "Contact.h"
 
-//static double DEFAULT_VIEW_POINT[3] = { 150, 150, 150 };
-static double DEFAULT_VIEW_POINT[3] = { 30, 30, 30 };
+static double DEFAULT_VIEW_POINT[3] = { 50, 50, 50 };
 static double DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
 static double DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
 
