@@ -21,9 +21,10 @@
 #include <vector>
 
 #include "core.h"
-#include "Object.h"
+#include "Mover.h"
 #include <MoverConnection.h>
 #include <Plane.h>
+#include "Fluid.h"
 #include <pcontacts.h>
 #include <pworld.h>
 
@@ -49,6 +50,7 @@ public:
 	void drawStuff();
 	void doPick();
 	void test();
+	void testValue(float t);
 	void step();
 
 private:
@@ -58,6 +60,7 @@ private:
 	Viewer *m_viewer;
 	//std::vector<Mover> movers;
 	std::vector<std::shared_ptr<Plane>> planes;
+	Fluid fluid;
 	MoverConnection moversConnection;
 	cyclone::ParticleContact contact[5];
 	std::vector<cyclone::ParticleContactGenerator*> contactGenerators;
@@ -75,5 +78,6 @@ private:
 	void initCable(cyclone::Particle* pA, cyclone::Particle* pB, float maxLen);
 	void initRod(cyclone::Particle* pA, cyclone::Particle* pB);
 	void initCableConstraint(cyclone::Particle* p, float maxLen);
+	void drawFluidSurface();
 };
 

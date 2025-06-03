@@ -999,6 +999,14 @@ namespace cyclone {
             data[3] = c3; data[4] = c4; data[5] = c5;
             data[6] = c6; data[7] = c7; data[8] = c8;
         }
+        /**
+        * Clear all data of the matrix
+        */
+        void clear() {
+            for (int i = 0; i < 9; i++) {
+                data[i] = 0.0f;
+            }
+        }
 
         /**
          * Sets the matrix to be a diagonal matrix with the given
